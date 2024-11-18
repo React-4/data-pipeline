@@ -1,16 +1,7 @@
-# This is a sample Python script.
+import pandas as pd
+import price_crawler
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+df = pd.read_csv("data/listed_companies.csv", dtype={'종목코드': str})
+df = df[["회사명","종목코드"]].reset_index().rename(columns={"index": "stock_id"})
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+pc = price_crawler.stock_price_crawler(df)
