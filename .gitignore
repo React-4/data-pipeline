@@ -8,7 +8,7 @@
 data
 /data
 .env
-
+.DS_Store
 listed_companies.csv
 
 # User-specific stuff
