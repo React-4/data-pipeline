@@ -106,14 +106,14 @@ def parse_response_to_df(response, description):
         return pd.DataFrame()
 
 
-# 실행
-df_up = fetch_change_rate(2)  # 상승률
-df_down = fetch_change_rate(3)  # 하락률
-df_volume = fetch_volume_or_transaction_rank("volume")  # 거래량 순위
-df_transaction = fetch_volume_or_transaction_rank("transaction")  # 거래대금 순위
-
-# CSV로 저장
-df_up.to_csv("data/상승률순위.csv", index=False, encoding="utf-8-sig")
-df_down.to_csv("data/하락률순위.csv", index=False, encoding="utf-8-sig")
-df_volume.to_csv("data/거래량순위.csv", index=False, encoding="utf-8-sig")
-df_transaction.to_csv("data/거래대금순위.csv", index=False, encoding="utf-8-sig")
+# # 실행
+# df_up = fetch_change_rate(2)  # 상승률
+# df_down = fetch_change_rate(3)  # 하락률
+# df_volume = fetch_volume_or_transaction_rank("volume")  # 거래량 순위
+# df_transaction = fetch_volume_or_transaction_rank("transaction")  # 거래대금 순위
+#
+# # CSV로 저장
+# df_up.to_csv("data/상승률순위.csv", index=False, encoding="utf-8-sig")
+# df_down.to_csv("data/하락률순위.csv", index=False, encoding="utf-8-sig")
+# df_volume.to_csv("data/거래량순위.csv", index=False, encoding="utf-8-sig")
+# df_transaction.to_csv("data/거래대금순위.csv", index=False, encoding="utf-8-sig")

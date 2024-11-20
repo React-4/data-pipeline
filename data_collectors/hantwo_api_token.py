@@ -8,7 +8,7 @@ load_dotenv()
 
 APP_KEY = os.getenv("APP_KEY")
 APP_SECRET = os.getenv("APP_SECRET")
-TOKEN_FILE = ".env"  # .env 파일에서 관리
+TOKEN_FILE = "../.env"  # .env 파일에서 관리
 
 # .env 파일에 토큰과 만료 시간을 저장
 def save_token_to_env(token, expire_time):

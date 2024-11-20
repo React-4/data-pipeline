@@ -110,3 +110,24 @@ def upload_dataframe_to_mysql(df, table_name, if_exists="append", chunksize=1000
         print(f"테이블 '{table_name}'에 데이터 업로드 완료!")
     except Exception as e:
         print(f"데이터 업로드 중 오류 발생: {e}")
+
+
+def read_table_to_dataframe(table_name):
+    """
+    MySQL 테이블 데이터를 Pandas DataFrame으로 읽어옴.
+
+    Args:
+        table_name (str): 읽어올 테이블 이름.
+
+    Returns:
+        pd.DataFrame: 테이블 데이터가 포함된 DataFrame.
+    """
+    try:
+        engine = get_db_connection()
+        query = f"SELECT * FROM {table_name}"
+        df = pd.read_sql(query, con=engine)
+        print(f"테이블 '{table_name}' 데이터가 성공적으로 DataFrame으로 로드되었습니다.")
+        return df
+    except Exception as e:
+        print(f"오류 발생: {e}")
+        return None

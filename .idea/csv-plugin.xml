@@ -17,7 +17,35 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/listed_companies_with_info.csv">
+        <entry key="/data/listed_companies_with_info.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/data/거래대금순위.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/disclosure/announcement_gpt.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/disclosure/kospi_disclo.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/disclosure/result_table.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

@@ -54,10 +54,11 @@ def stock_price_crawler(df):
     # 호출: 일봉, 주봉, 월봉 데이터를 각각 저장
     intervals = ['days', 'weeks', 'months']
     unified_data = {interval: [] for interval in intervals}
+    print(df)
 
     # 각 종목에 대해 크롤링 수행
     for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing stocks"):
-        stock_id = row["stock_id"]
+        stock_id = row["id"]
         ticker = row["ticker"]
 
         for interval in intervals:
@@ -65,7 +66,7 @@ def stock_price_crawler(df):
             unified_data[interval].extend(data)  # 데이터를 통합
 
     # 통합 데이터를 각각의 CSV 파일로 저장
-    os.makedirs('data', exist_ok=True)  # 데이터 디렉토리 생성
+    os.makedirs('../data', exist_ok=True)  # 데이터 디렉토리 생성
     for interval in intervals:
         file_name = f'data/{interval}_data.csv'
         if unified_data[interval]:  # 데이터가 있을 때만 저장
@@ -79,7 +80,7 @@ def stock_price_crawler(df):
 if __name__ == '__main__':
     # 테스트용 데이터프레임 생성
     test_data = pd.DataFrame({
-        "stock_id": [1, 2],
+        "id": [1, 2],
         "ticker": ["005930", "000660"]  # 예: 삼성전자, SK하이닉스
     })
 

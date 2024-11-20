@@ -42,27 +42,9 @@ def fetch_sector_data(market):
                 }
                 stocks_data.append(stock_info)
 
-        # Redis에 배치로 저장
-        with redis_client.pipeline() as pipe:
-            for stock in stocks_data:
-                ticker = stock["ticker"]
-                pipe.set(ticker, json.dumps(stock))  # 종목 코드로 저장
-            pipe.execute()  # 모든 명령을 한 번에 실행
-
         return stocks_data
     else:
         print(f"API 호출 실패: {response.status_code}")
         print(f"응답 내용: {response.content}")
         return []
 
-try:
-    # KOSPI 데이터 가져오기
-    kospi_stocks = fetch_sector_data('KOSPI')
-    print("KOSPI 상장 기업 데이터가 Redis에 저장되었습니다.")
-
-    # KOSDAQ 데이터 가져오기
-    kosdaq_stocks = fetch_sector_data('KOSDAQ')
-    print("KOSDAQ 상장 기업 데이터가 Redis에 저장되었습니다.")
-
-except Exception as e:
-    print(f"오류 발생: {e}")
