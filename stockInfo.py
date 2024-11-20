@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 from io import StringIO
+from tqdm import tqdm
 
 # KRX 페이지 URL
 krx_url = "https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13"
@@ -75,50 +76,57 @@ def get_daum_company_info(ticker):
             "마켓타입": None
         }
 
-try:
-    # KRX 페이지 콘텐츠 가져오기
-    response = requests.get(krx_url)
-    response.encoding = "euc-kr"
+def stock_info_crawler():
+    try:
+        # KRX 페이지 콘텐츠 가져오기
+        response = requests.get(krx_url)
+        response.encoding = "euc-kr"
 
-    # HTML 테이블 파싱
-    tables = pd.read_html(StringIO(response.text))
+        # HTML 테이블 파싱
+        tables = pd.read_html(StringIO(response.text))
 
-    # 첫 번째 테이블을 선택
-    listed_companies_df = tables[0]
+        # 첫 번째 테이블을 선택
+        listed_companies_df = tables[0]
 
-    # 필요한 열 선택: 종목코드, 회사명, 업종
-    listed_companies_df = listed_companies_df[["종목코드", "회사명", "업종"]]
+        # 필요한 열 선택: 종목코드, 회사명, 업종
+        listed_companies_df = listed_companies_df[["종목코드", "회사명", "업종"]]
 
-    # '종목코드' 열을 문자열로 변환하고 6자리로 패딩
-    if "종목코드" in listed_companies_df.columns:
-        listed_companies_df.loc[:, "종목코드"] = listed_companies_df["종목코드"].astype(str).str.zfill(6)
+        # '종목코드' 열을 문자열로 변환하고 6자리로 패딩
+        if "종목코드" in listed_companies_df.columns:
+            listed_companies_df.loc[:, "종목코드"] = listed_companies_df["종목코드"].astype(str).str.zfill(6)
 
-    # 추가 기업 정보 가져오기
-    additional_info = []
-    for index, row in listed_companies_df.iterrows():
-        ticker = row["종목코드"]
-        company_info = get_daum_company_info(ticker)
-        additional_info.append(company_info)
+        # 추가 기업 정보 가져오기
+        additional_info = []
+        for index, row in tqdm(listed_companies_df.iterrows(), total=len(listed_companies_df),
+                               desc="Processing companies"):
+            ticker = row["종목코드"]
+            company_info = get_daum_company_info(ticker)
+            additional_info.append(company_info)
 
-    # 추가 정보 DataFrame으로 변환
-    additional_info_df = pd.DataFrame(additional_info)
+        # 추가 정보 DataFrame으로 변환
+        additional_info_df = pd.DataFrame(additional_info)
 
-    # KRX 데이터와 Daum 데이터 결합
-    combined_df = pd.concat([listed_companies_df.reset_index(drop=True), additional_info_df], axis=1)
+        # KRX 데이터와 Daum 데이터 결합
+        combined_df = pd.concat([listed_companies_df.reset_index(drop=True), additional_info_df], axis=1)
 
-    # 마켓타입이 "정보 없음"인 행 삭제
-    combined_df = combined_df[combined_df['마켓타입'] != "정보 없음"]
+        # 마켓타입이 "정보 없음"인 행 삭제
+        combined_df = combined_df[combined_df['마켓타입'] != "정보 없음"]
 
-    # 결합된 DataFrame의 첫 몇 행 출력
-    print("상장 기업 데이터의 첫 몇 행:")
-    print(combined_df.head())
+        combined_df.columns = ["ticker","company_name","category","company_overview","market_cap","market_type"]
+        # 결합된 DataFrame의 첫 몇 행 출력
+        print("상장 기업 데이터의 첫 몇 행:")
+        print(combined_df.head())
 
-    # CSV 파일로 저장
-    combined_df.to_csv("listed_companies_with_info.csv", index=False, encoding="utf-8-sig")
-    print("CSV 파일로 저장되었습니다: listed_companies_with_info.csv")
+        # CSV 파일로 저장
+        combined_df.to_csv("data/listed_companies_with_info.csv", index=False, encoding="utf-8-sig")
+        print("CSV 파일로 저장되었습니다: listed_companies_with_info.csv")
 
-    # 마지막 업데이트 시간 로그
-    print(f"데이터가 마지막으로 업데이트된 시간: {datetime.now()}")
+        # 마지막 업데이트 시간 로그
+        print(f"데이터가 마지막으로 업데이트된 시간: {datetime.now()}")
+        return combined_df
+    except Exception as e:
+        print(f"오류 발생: {e}")
+        return
 
-except Exception as e:
-    print(f"오류 발생: {e}")
+if __name__ == '__main__':
+    stock_info_crawler()
