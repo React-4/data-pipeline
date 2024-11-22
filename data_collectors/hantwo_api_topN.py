@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
-import hantwo_api_token
+
+from data_collectors import hantwo_api_token
 
 APP_KEY = hantwo_api_token.APP_KEY
 APP_SECRET = hantwo_api_token.APP_SECRET

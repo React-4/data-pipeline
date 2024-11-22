@@ -18,7 +18,7 @@ stock_info_df = pd.read_csv(
     dtype={"ticker": str},  # ticker 컬럼을 문자열로 읽음 (예: 005930 유지)
     encoding="utf-8-sig"
 )
-mc.upload_dataframe_to_mysql(stock_info_df, "Stock", "append")
+mc.upload_dataframe_to_mysql(stock_info_df, "stock", "append")
 print("종목 정보 저장 완료.")
 
 # 2. 주가 데이터 크롤링 및 저장
@@ -27,14 +27,14 @@ stockInfo_df = mc.read_table_to_dataframe("Stock")
 stock_price_crawler(stockInfo_df)
 
 # 일봉, 주봉, 월봉 데이터 로드
-days_price_df = pd.read_csv("data/days_data.csv", encoding="utf-8-sig")
-weeks_price_df = pd.read_csv("data/weeks_data.csv", encoding="utf-8-sig")
-months_price_df = pd.read_csv("data/months_data.csv", encoding="utf-8-sig")
+days_price_df = pd.read_csv("data/days_data.csv", encoding="utf-8-sig").drop(columns=["ticker"])
+weeks_price_df = pd.read_csv("data/weeks_data.csv", encoding="utf-8-sig").drop(columns=["ticker"])
+months_price_df = pd.read_csv("data/months_data.csv", encoding="utf-8-sig").drop(columns=["ticker"])
 
 # MySQL에 업로드
-mc.upload_dataframe_to_mysql(days_price_df, "StockPriceDay", "append")
-mc.upload_dataframe_to_mysql(weeks_price_df, "StockPriceWeek", "append")
-mc.upload_dataframe_to_mysql(months_price_df, "StockPriceMonth", "append")
+mc.upload_dataframe_to_mysql(days_price_df, "stock_price_day", "append")
+mc.upload_dataframe_to_mysql(weeks_price_df, "stock_price_week", "append")
+mc.upload_dataframe_to_mysql(months_price_df, "stock_price_month", "append")
 print("주가 데이터 저장 완료.")
 
 # 3. DART 공시 데이터 수집 및 저장
@@ -47,7 +47,7 @@ process_disclosures(kospi_disclo_df, stockInfo_df, output_path="disclosure/resul
 kospi_disclo_df = pd.read_csv("disclosure/result_table.csv", encoding="utf-8-sig")
 
 # MySQL에 공시 데이터 업로드
-mc.upload_dataframe_to_mysql(kospi_disclo_df, "Announcement", "append")
+mc.upload_dataframe_to_mysql(kospi_disclo_df, "announcement", "append")
 print("DART 공시 데이터 저장 완료.")
 
 # 4. 실시간 순위 데이터 수집 및 Redis 저장
