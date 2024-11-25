@@ -19,7 +19,7 @@ jobs:
           python-version: '3.9'  # Python 버전 설정
 
       - name: Install dependencies
-        run: pip install -r requirements.text  # 의존성 설치
+        run: pip install -r requirements.txt  # 의존성 설치
 
       - name: Build Docker image
         run: |
