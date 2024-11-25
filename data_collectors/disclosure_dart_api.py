@@ -7,6 +7,7 @@ import zipfile
 from zipfile import BadZipFile
 import math
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 def categorize_announcement_type(report_nm):
     """
     공시 제목(report_nm)을 기반으로 공시 타입을 분류합니다.
@@ -82,7 +83,7 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
     all_filings = []
 
     # 필요한 페이지 수만큼 반복
-    for page_no in range(1, total_pages + 1):
+    for page_no in tqdm(range(1, total_pages + 1)):
         filings = dart_fss.api.filings.search_filings(
             bgn_de=bgn_de,
             end_de=end_de,
@@ -118,7 +119,7 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
     disclosure_dir = os.path.join(os.getcwd(), output_dir)
     os.makedirs(disclosure_dir, exist_ok=True)  # 디렉토리가 없으면 생성
 
-    for index, row in df.iterrows():
+    for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing rows"):
         rcept_no = row['rcept_no']
         params = {
             'crtfc_key': api_key,
