@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import time
 
 from data_collectors import hantwo_api_token
 
@@ -108,8 +109,14 @@ def parse_response_to_df(response, description):
 
 # # 실행
 df_up = fetch_change_rate(2)  # 상승률
+time.sleep(1)  # 요청 간에 1초 대기
+
 df_down = fetch_change_rate(3)  # 하락률
+time.sleep(1)  # 요청 간에 1초 대기
+
 df_volume = fetch_volume_or_transaction_rank("volume")  # 거래량 순위
+time.sleep(1)  # 요청 간에 1초 대기
+
 df_transaction = fetch_volume_or_transaction_rank("transaction")  # 거래대금 순위
 
 # # Redis에 저장
