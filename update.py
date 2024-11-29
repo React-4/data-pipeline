@@ -104,9 +104,13 @@ def update_1m():
 
     # 상승률, 하락률, 거래량, 거래대금 순위 데이터 수집
     df_up = ht.fetch_change_rate(2)
+    time.sleep(1)
     df_down = ht.fetch_change_rate(3)
+    time.sleep(1)
     df_volume = ht.fetch_volume_or_transaction_rank("volume")
+    time.sleep(1)
     df_transaction = ht.fetch_volume_or_transaction_rank("transaction")
+    time.sleep(1)
 
     # Redis에 저장
     redis_connector.save_df_to_redis_as_nested_json(redis_client, df_up, "상승률순위")
