@@ -133,8 +133,8 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    update_weeks()
-    update_months()
-    update_10m()
-    update_1m()
+    main()
+    # update_weeks()
+    # update_months()
+    # update_10m()
+    # update_1m()
