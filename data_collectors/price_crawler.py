@@ -1,3 +1,5 @@
+import time
+
 import requests
 import pandas as pd
 from tqdm import tqdm
@@ -68,7 +70,7 @@ def stock_price_crawler(df, interval, n=1000):
     for _, row in tqdm(df.iterrows(), total=len(df), desc=f"Processing stocks ({interval})"):
         stock_id = row["stock_id"]
         ticker = row["ticker"]
-
+        time.sleep(1)
         # 데이터 크롤링
         data = fetch_stock_data(interval, stock_id, ticker, limit=n)
         unified_data.extend(data)
