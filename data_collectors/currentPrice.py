@@ -39,7 +39,6 @@ def fetch_sector_data(market):
                     "changeAmount": stock.get('changePrice'),  # 등락금액
                     "marketCap": stock.get('marketCap'),  # 시가총액
                     "accTradeVolume": stock.get('accTradeVolume'),
-                    "foreignRatio": stock.get('foreignRatio'),  # 외국인 비율
                     "foreignRatio": stock.get('foreignRatio')  # 외국인 비율
 
                 }
