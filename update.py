@@ -59,6 +59,9 @@ def update_weeks():
 
 # 매달 1일 한번 실행
 def update_months():
+    if datetime.now().day != 1:
+        return
+
     mc = get_mysql_connection()
     stockInfo_df = mc.read_table_to_dataframe("stock")
     months_price_df = stock_price_crawler(stockInfo_df, "months", 1)
@@ -122,7 +125,7 @@ def main():
     schedule.every().friday.at("18:00").do(update_day)
     schedule.every().day.at("00:00").do(reset_previous_row_count)
     schedule.every().friday.at("18:00").do(update_weeks)
-    schedule.every(1).months.do(update_months)
+    schedule.every().friday.at("18:30").do(update_months)
     schedule.every(10).minutes.do(update_10m)
     schedule.every(1).minutes.do(update_1m)
 
