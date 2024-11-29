@@ -117,6 +117,17 @@ def update_1m():
     redis_connector.save_df_to_redis_as_nested_json(redis_client, df_down, "하락률순위")
     redis_connector.save_df_to_redis_as_nested_json(redis_client, df_volume, "거래량순위")
     redis_connector.save_df_to_redis_as_nested_json(redis_client, df_transaction, "거래대금순위")
+
+    # 5. KOSPI/KOSDAQ 현재가 데이터 수집 및 Redis 저장
+    print("KOSPI/KOSDAQ 현재가 데이터 수집 및 Redis 저장 시작...")
+    kospi_current_price = fetch_sector_data('KOSPI')
+    kosdaq_current_price = fetch_sector_data('KOSDAQ')
+
+    # Redis에 저장
+    redis_connector.save_stocks_to_redis(redis_client, kospi_current_price)
+    redis_connector.save_stocks_to_redis(redis_client, kosdaq_current_price)
+    print("KOSPI/KOSDAQ 현재가 데이터 저장 완료.")
+
     print("실시간 순위 데이터 저장 완료.")
 
 
