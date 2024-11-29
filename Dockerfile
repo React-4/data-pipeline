@@ -13,5 +13,24 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. Copy the rest of the application code to the container
 COPY . .
 
-# 6. Command to run your application (modify as needed)
+# 6. Set environment variables to be read from an external source
+# The actual values will be provided via Docker Compose or .env
+ENV APP_KEY=""
+ENV APP_SECRET=""
+ENV ACC=""
+ENV ACC_NO=""
+ENV TOKEN=""
+ENV TOKEN_EXPIRE_TIME=""
+ENV DB_USER=""
+ENV DB_PASSWORD=""
+ENV DB_HOST=""
+ENV DB_PORT=""
+ENV DB_NAME=""
+ENV DART_API_KEY=""
+ENV GPT_API_KEY=""
+ENV REDIS_HOST=""
+ENV REDIS_PORT=""
+ENV REDIS_DB=""
+
+# 7. Command to run your application
 CMD ["python", "update.py"]
