@@ -77,8 +77,8 @@ def fetch_volume_or_transaction_rank(rank_type="volume"):
 
 # 응답 처리 함수 (DataFrame으로 변환)
 def parse_response_to_df(response, description):
-    print(f"==== {description} ====")
-    print(f"Response Status: {response.status_code}")
+    # print(f"==== {description} ====")
+    # print(f"Response Status: {response.status_code}")
     response_data = response.json()
 
     if response.status_code == 200 and response_data.get("rt_cd") == "0":
@@ -97,7 +97,6 @@ def parse_response_to_df(response, description):
                 data.append(row)
             # DataFrame 생성
             df = pd.DataFrame(data)
-            print(df)
             return df
         else:
             print(f"{description} 데이터를 가져오지 못했습니다.")

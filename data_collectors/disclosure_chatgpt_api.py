@@ -83,7 +83,7 @@ def process_disclosures(disclosure_df, stock_info_df, output_path="result_table.
     disclosure_df의 content를 GPT로 요약하고 결과를 테이블로 저장하는 함수
     """
     # stock_code와 ticker를 매핑하여 stock_id 추가
-    ticker_to_id = stock_info_df.set_index('ticker')['id'].to_dict()
+    ticker_to_id = stock_info_df.set_index('ticker')['stock_id'].to_dict()
     disclosure_df['stock_id'] = disclosure_df['stock_code'].map(ticker_to_id)
 
     results = []
@@ -128,12 +128,12 @@ def process_disclosures(disclosure_df, stock_info_df, output_path="result_table.
     print(f"결과 테이블 저장 완료: {output_path}")
 
 
-def process_disclosures2(disclosure_df, stock_info_df, output_path="result_table.csv"):
+def process_disclosures2(disclosure_df, stock_info_df):
     """
     disclosure_df의 content를 GPT로 요약하고 결과를 테이블로 저장하는 함수
     """
     # stock_code와 ticker를 매핑하여 stock_id 추가
-    ticker_to_id = stock_info_df.set_index('ticker')['id'].to_dict()
+    ticker_to_id = stock_info_df.set_index('ticker')['stock_id'].to_dict()
     disclosure_df['stock_id'] = disclosure_df['stock_code'].map(ticker_to_id)
 
     results = []
@@ -179,6 +179,4 @@ def process_disclosures2(disclosure_df, stock_info_df, output_path="result_table
     result_df = pd.DataFrame(results)
     print(f"최종 결과 테이블 생성 완료: 총 {len(result_df)}개의 공시 데이터")
 
-    # CSV로 저장
-    result_df.to_csv(output_path, index=False, encoding="utf-8-sig")
-    print(f"결과 테이블 저장 완료: {output_path}")
+    return result_df

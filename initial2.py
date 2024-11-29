@@ -10,48 +10,34 @@ import pandas as pd
 # MySQL 연결 객체
 mc = mysql_connector
 
-# # 1. 종목 정보 크롤링 및 저장
+# 1. 종목 정보 크롤링 및 저장
 # print("종목 정보 크롤링 및 저장 시작...")
-# stock_info_crawler()
-# stock_info_df = pd.read_csv(
-#     "data/listed_companies_with_info.csv",
-#     dtype={"ticker": str},  # ticker 컬럼을 문자열로 읽음 (예: 005930 유지)
-#     encoding="utf-8-sig"
-# )
+# stock_info_df = stock_info_crawler()
 # mc.upload_dataframe_to_mysql(stock_info_df, "stock", "append")
-# print("종목 정보 저장 완료.")
 #
 # # 2. 주가 데이터 크롤링 및 저장
-# print("주가 데이터 크롤링 및 저장 시작...")
+print("주가 데이터 크롤링 및 저장 시작...")
 stockInfo_df = mc.read_table_to_dataframe("stock")
-# stock_price_crawler(stockInfo_df)
-#
-# # 일봉, 주봉, 월봉 데이터 로드
-# days_price_df = pd.read_csv("data/days_data.csv", encoding="utf-8-sig").drop(columns=["ticker"])
-# weeks_price_df = pd.read_csv("data/weeks_data.csv", encoding="utf-8-sig").drop(columns=["ticker"])
-# months_price_df = pd.read_csv("data/months_data.csv", encoding="utf-8-sig").drop(columns=["ticker"])
-#
-# # MySQL에 업로드
-# mc.upload_dataframe_to_mysql(days_price_df, "stock_price_day", "append")
-# mc.upload_dataframe_to_mysql(weeks_price_df, "stock_price_week", "append")
-# mc.upload_dataframe_to_mysql(months_price_df, "stock_price_month", "append")
+days_price_df,weeks_price_df,months_price_df = stock_price_crawler(stockInfo_df,500)
+
+# MySQL에 업로드
+mc.upload_dataframe_to_mysql(days_price_df.drop(columns=['ticker']), "stock_price_day", "append")
+mc.upload_dataframe_to_mysql(weeks_price_df.drop(columns=['ticker']), "stock_price_week", "append")
+mc.upload_dataframe_to_mysql(months_price_df.drop(columns=['ticker']), "stock_price_month", "append")
 print("주가 데이터 저장 완료.")
 
 # 3. DART 공시 데이터 수집 및 저장
 print("DART 공시 데이터 수집 및 저장 시작...")
-fetch_dart_filings('20241118', '20241118', corp_cls='Y', page_count=25, csv_filename='kospi_disclo3.csv')
+# dart_df = fetch_dart_filings('20241124', '20241125', corp_cls='Y', page_count=25)
 
 # 공시 데이터 처리
-kospi_disclo_df = pd.read_csv("disclosure/kospi_disclo3.csv", dtype={"stock_code": str}, encoding="utf-8-sig")
-process_disclosures2(kospi_disclo_df, stockInfo_df, output_path="disclosure/result_table3.csv")
-
-
+# chatgpt_api = process_disclosures2(dart_df, stockInfo_df)
 
 # MySQL에 공시 데이터 업로드
-# mc.upload_dataframe_to_mysql(kospi_disclo_df, "announcement", "append")
+# mc.upload_dataframe_to_mysql(chatgpt_api, "announcement", "append")
 print("DART 공시 데이터 저장 완료.")
 
-# 4. 실시간 순위 데이터 수집 및 Redis 저장
+# #4. 실시간 순위 데이터 수집 및 Redis 저장
 # print("실시간 순위 데이터 수집 및 Redis 저장 시작...")
 # ht = hantwo_api_topN
 # redis_client = redis_connector.get_redis_client()

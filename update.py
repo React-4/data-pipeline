@@ -1,128 +1,140 @@
-import requests
+from data_collectors.currentPrice import fetch_sector_data
+from connector import redis_connector, mysql_connector
+from data_collectors import hantwo_api_topN
+from data_collectors.disclosure_chatgpt_api import process_disclosures, process_disclosures2
+from data_collectors.disclosure_dart_api import fetch_dart_filings
+from data_collectors.price_crawler import stock_price_crawler
 import pandas as pd
+from datetime import datetime
+import schedule
 import time
 
-from data_collectors import hantwo_api_token
-
-APP_KEY = hantwo_api_token.APP_KEY
-APP_SECRET = hantwo_api_token.APP_SECRET
-token = hantwo_api_token.get_access_token()
-
-BASE_URL = "https://openapi.koreainvestment.com:9443"
-
-# 공통 헤더
-headers = {
-    "Content-Type": "application/json; charset=utf-8",
-    "authorization": f"Bearer {token}",
-    "appkey": APP_KEY,
-    "appsecret": APP_SECRET
-}
-
-# 상승률/하락률 요청
-def fetch_change_rate(num=2):
-    local_headers = headers.copy()
-    local_headers["tr_id"] = "FHPST01700000"
-
-    params = {
-        "fid_rsfl_rate2": "",
-        "fid_cond_mrkt_div_code": "J",
-        "fid_cond_scr_div_code": "20170",
-        "fid_input_iscd": "0000",
-        "fid_rank_sort_cls_code": num,  # 2: 상승률, 3: 하락률
-        "fid_input_cnt_1": 0,
-        "fid_prc_cls_code": "0",
-        "fid_input_price_1": "",
-        "fid_input_price_2": "",
-        "fid_vol_cnt": "",
-        "fid_trgt_cls_code": "0",
-        "fid_trgt_exls_cls_code": "0",
-        "fid_div_cls_code": "0",
-        "fid_rsfl_rate1": ""
-    }
-
-    description = "상승률 순위" if num == 2 else "하락률 순위"
-    response = requests.get(f"{BASE_URL}/uapi/domestic-stock/v1/ranking/fluctuation", headers=local_headers, params=params)
-    return parse_response_to_df(response, description)
-
-
-# 거래량/거래대금 요청
-def fetch_volume_or_transaction_rank(rank_type="volume"):
-    local_headers = headers.copy()
-    local_headers["tr_id"] = "FHPST01710000"
-
-    params = {
-        "FID_COND_MRKT_DIV_CODE": "J",
-        "FID_COND_SCR_DIV_CODE": "20171",
-        "FID_INPUT_ISCD": "0000",
-        "FID_DIV_CLS_CODE": "0",
-        "FID_TRGT_CLS_CODE": "111111111",
-        "FID_TRGT_EXLS_CLS_CODE": "0000000000",
-        "FID_INPUT_PRICE_1": "",
-        "FID_INPUT_PRICE_2": "",
-        "FID_VOL_CNT": "",
-        "FID_INPUT_DATE_1": ""
-    }
-
-    if rank_type == "volume":
-        params["FID_BLNG_CLS_CODE"] = "0"  # 평균 거래량 기준
-        description = "거래량 순위"
-    elif rank_type == "transaction":
-        params["FID_BLNG_CLS_CODE"] = "3"  # 거래대금 기준
-        description = "거래대금 순위"
-    else:
-        raise ValueError("Invalid rank_type. Use 'volume' or 'transaction'.")
-
-    response = requests.get(f"{BASE_URL}/uapi/domestic-stock/v1/quotations/volume-rank", headers=local_headers, params=params)
-    return parse_response_to_df(response, description)
-
-
-# 응답 처리 함수 (DataFrame으로 변환)
-def parse_response_to_df(response, description):
-    print(f"==== {description} ====")
-    print(f"Response Status: {response.status_code}")
-    response_data = response.json()
-
-    if response.status_code == 200 and response_data.get("rt_cd") == "0":
-        output = response_data.get("output", [])
-        if output:
-            data = []
-            for item in output:
-                # 공통 필드를 데이터 리스트에 추가
-                row = {
-                    "종목명": item.get("hts_kor_isnm"),
-                    "종목코드": item.get("stck_shrn_iscd") or item.get("mksc_shrn_iscd"),
-                    "현재가": item.get("stck_prpr"),
-                    "등락률": item.get("oprc_vrss_prpr_rate") if description in ["상승률 순위", "하락률 순위"] else item.get("prdy_ctrt"),
-                    "거래량": item.get("acml_vol")
-                }
-                data.append(row)
-            # DataFrame 생성
-            df = pd.DataFrame(data)
-            print(df)
-            return df
-        else:
-            print(f"{description} 데이터를 가져오지 못했습니다.")
-            return pd.DataFrame()
-    else:
-        print(f"API 요청에 실패했습니다. Response: {response_data}")
-        return pd.DataFrame()
-
-# # 실행
-df_up = fetch_change_rate(2)  # 상승률
-time.sleep(1)  # 요청 간에 1초 대기
-
-df_down = fetch_change_rate(3)  # 하락률
-time.sleep(1)  # 요청 간에 1초 대기
-
-df_volume = fetch_volume_or_transaction_rank("volume")  # 거래량 순위
-time.sleep(1)  # 요청 간에 1초 대기
-
-df_transaction = fetch_volume_or_transaction_rank("transaction")  # 거래대금 순위
-
-# # Redis에 저장
-from connector import redis_connector
+# MySQL 및 Redis 연결 객체
+mc = mysql_connector
 redis_client = redis_connector.get_redis_client()
-redis_connector.save_df_to_redis_as_nested_json(redis_client, df_up, "상승률순위")
-redis_connector.save_df_to_redis_as_nested_json(redis_client, df_down, "하락률순위")
-redis_connector.save_df_to_redis_as_nested_json(redis_client, df_volume, "거래량순위")
-redis_connector.save_df_to_redis_as_nested_json(redis_client, df_transaction, "거래대금순위") 
+
+def get_mysql_connection():
+    """
+    MySQL 연결 확인 및 재연결 함수.
+    """
+    global mc
+    try:
+        # MySQL 연결 상태 확인
+        mc.ping(reconnect=True)
+    except Exception as e:
+        print(f"MySQL 연결 재설정 중...: {e}")
+        mc = mysql_connector  # 재연결 수행
+    return mc
+
+
+def get_redis_connection():
+    """
+    Redis 연결 확인 및 재연결 함수.
+    """
+    global redis_client
+    try:
+        # Redis 연결 상태 확인
+        redis_client.ping()
+    except Exception as e:
+        print(f"Redis 연결 재설정 중...: {e}")
+        redis_client = redis_connector.get_redis_client()  # 재연결 수행
+    return redis_client
+
+
+# 월~금 하루에 한번 오후 6시 실행
+def update_day():
+    mc = get_mysql_connection()
+    stockInfo_df = mc.read_table_to_dataframe("stock")
+    days_price_df = stock_price_crawler(stockInfo_df, "days", 1)
+    mc.upload_dataframe_to_mysql(days_price_df, "stock_price_day", "append")
+
+
+# 매주 금요일 6시에 한번 실행
+def update_weeks():
+    mc = get_mysql_connection()
+    stockInfo_df = mc.read_table_to_dataframe("stock")
+    weeks_price_df = stock_price_crawler(stockInfo_df, "weeks", 1)
+    mc.upload_dataframe_to_mysql(weeks_price_df, "stock_price_week", "append")
+
+
+# 매달 1일 한번 실행
+def update_months():
+    mc = get_mysql_connection()
+    stockInfo_df = mc.read_table_to_dataframe("stock")
+    months_price_df = stock_price_crawler(stockInfo_df, "months", 1)
+    mc.upload_dataframe_to_mysql(months_price_df, "stock_price_month", "append")
+
+
+# 매일 10분에 한번씩 공시 크롤링
+previous_row_count = 0
+
+
+def reset_previous_row_count():
+    global previous_row_count
+    previous_row_count = 0
+    print(f"{datetime.now()} - previous_row_count 초기화 완료.")
+
+
+def update_10m():
+    global previous_row_count
+    mc = get_mysql_connection()
+    stockInfo_df = mc.read_table_to_dataframe("stock")
+    today = datetime.today().strftime('%Y%m%d')
+    dart_df = fetch_dart_filings(today, today, corp_cls='Y', page_count=25)
+    current_row_count = len(dart_df)
+
+    if current_row_count > previous_row_count:
+        new_rows = dart_df.iloc[previous_row_count:]
+        # print(f"New rows detected: {len(new_rows)}")
+        previous_row_count = current_row_count
+        df = process_disclosures2(new_rows, stockInfo_df)
+        mc.upload_dataframe_to_mysql(df, "announcement", "append")
+    else:
+        print("No new rows detected.")
+
+
+# 매 1분마다 실행
+def update_1m():
+    redis_client = get_redis_connection()
+    print("실시간 순위 데이터 수집 및 Redis 저장 시작...")
+    ht = hantwo_api_topN
+
+    # 상승률, 하락률, 거래량, 거래대금 순위 데이터 수집
+    df_up = ht.fetch_change_rate(2)
+    df_down = ht.fetch_change_rate(3)
+    df_volume = ht.fetch_volume_or_transaction_rank("volume")
+    df_transaction = ht.fetch_volume_or_transaction_rank("transaction")
+
+    # Redis에 저장
+    redis_connector.save_df_to_redis_as_nested_json(redis_client, df_up, "상승률순위")
+    redis_connector.save_df_to_redis_as_nested_json(redis_client, df_down, "하락률순위")
+    redis_connector.save_df_to_redis_as_nested_json(redis_client, df_volume, "거래량순위")
+    redis_connector.save_df_to_redis_as_nested_json(redis_client, df_transaction, "거래대금순위")
+    print("실시간 순위 데이터 저장 완료.")
+
+
+# 작업 스케줄링
+def main():
+    schedule.every().monday.at("18:00").do(update_day)
+    schedule.every().tuesday.at("18:00").do(update_day)
+    schedule.every().wednesday.at("18:00").do(update_day)
+    schedule.every().thursday.at("18:00").do(update_day)
+    schedule.every().friday.at("18:00").do(update_day)
+    schedule.every().day.at("00:00").do(reset_previous_row_count)
+    schedule.every().friday.at("18:00").do(update_weeks)
+    schedule.every(1).months.do(update_months)
+    schedule.every(10).minutes.do(update_10m)
+    schedule.every(1).minutes.do(update_1m)
+
+    print("스케줄링 시작...")
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+if __name__ == '__main__':
+    # main()
+    update_weeks()
+    update_months()
+    update_10m()
+    update_1m()

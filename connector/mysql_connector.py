@@ -2,8 +2,9 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
-
 # .env 파일 로드
+from sqlalchemy.exc import SQLAlchemyError
+
 load_dotenv()
 
 
@@ -130,4 +131,27 @@ def read_table_to_dataframe(table_name):
         return df
     except Exception as e:
         print(f"오류 발생: {e}")
+        return None
+
+def execute_query(query, fetch=False):
+    """
+    SQL 쿼리를 실행하는 함수.
+
+    Args:
+        query (str): 실행할 SQL 쿼리.
+        fetch (bool): 데이터를 반환할지 여부. True이면 데이터를 반환.
+
+    Returns:
+        list 또는 None: fetch=True일 때 결과를 리스트로 반환, fetch=False일 경우 None.
+    """
+    try:
+        engine = get_db_connection()
+        with engine.connect() as connection:
+            if fetch:
+                result = connection.execute(query)
+                return [row for row in result]  # 결과를 리스트로 변환
+            else:
+                connection.execute(query)  # 데이터 수정/삽입/삭제
+    except SQLAlchemyError as e:
+        print(f"쿼리 실행 중 오류 발생: {e}")
         return None

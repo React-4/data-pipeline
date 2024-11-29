@@ -1,3 +1,5 @@
+import time
+import urllib3
 from dotenv import load_dotenv
 import os
 import dart_fss
@@ -37,7 +39,7 @@ def categorize_announcement_type(report_nm):
     else:
         return '기타공시'
 
-def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='disclosure', csv_filename='all_filings_with_content.csv'):
+def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='disclosure'):
     """
     DART 공시 데이터를 수집하고 내용 추출 및 원문 URL 추가 후 CSV로 저장하는 함수.
 
@@ -95,6 +97,11 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
             page_count=page_count
         )
 
+        if page_no % 100 == 0:
+            print("change_api_key")
+            time.sleep(60)
+            dart_fss.set_api_key(api_key)
+
         if 'list' in filings and filings['list']:
             all_filings.extend(filings['list'])  # 공시 데이터를 리스트에 추가
             print(f"페이지 {page_no}: {len(filings['list'])}개 공시 가져옴")
@@ -119,16 +126,28 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
     disclosure_dir = os.path.join(os.getcwd(), output_dir)
     os.makedirs(disclosure_dir, exist_ok=True)  # 디렉토리가 없으면 생성
 
+    num = 0
     for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing rows"):
+        num +=1
+
+        if num %100 == 0:
+            time.sleep(100)
+            print("change_api_key")
+            dart_fss.set_api_key(api_key)
+
         rcept_no = row['rcept_no']
         params = {
             'crtfc_key': api_key,
             'rcept_no': rcept_no
         }
 
+
+
+
         # ZIP 파일 다운로드 경로
         doc_zip_path = os.path.join(disclosure_dir, f'{rcept_no}.zip')
-        response = requests.get(url, params=params)
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        response = requests.get(url, params=params,verify=False)
 
         if response.status_code == 200:
             with open(doc_zip_path, 'wb') as fp:
@@ -162,15 +181,10 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
     # 결과 확인
     print(df[['rcept_no', 'content', 'original_url']].head())
 
-    # CSV로 저장
-    output_path = os.path.join(disclosure_dir, csv_filename)
-
     df = df.dropna(subset=['stock_code', 'content'])  # NaN 값 제거
     df = df[df['stock_code'].str.strip() != '']  # 빈 문자열 제거
     df = df[df['content'].str.strip() != '']  # content가 빈 문자열인 경우 제거
 
-    df.to_csv(output_path, index=False, encoding='utf-8-sig')
-    print(f"CSV 파일로 저장 완료: {output_path}")
-
+    return df
 # 함수 호출 예시
 # fetch_dart_filings('20241120', '20241120', corp_cls='Y', page_count=25, csv_filename='kospi_disclo.csv')
