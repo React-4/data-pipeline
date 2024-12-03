@@ -70,7 +70,6 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
         page_count=page_count
     )
 
-    print(first_request)
     # exit()
     # 총 데이터 수(total_count) 가져오기
     if 'total_count' in first_request:

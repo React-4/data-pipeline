@@ -75,7 +75,7 @@ previous_row_count = 0
 def reset_previous_row_count():
     global previous_row_count
     previous_row_count = 0
-    print(f"{datetime.now()} - previous_row_count 초기화 완료.")
+    # print(f"{datetime.now()} - previous_row_count 초기화 완료.")
 
 
 def update_10m():

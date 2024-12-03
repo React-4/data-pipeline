@@ -44,11 +44,11 @@ def save_df_to_redis_as_nested_json(redis_client, df, key_name):
 
     # JSON 데이터를 Redis에 저장
     redis_client.set(key_name, json.dumps(nested_data, ensure_ascii=False))
-    print(f"Redis 저장 완료: {key_name} -> {nested_data}")
+    # print(f"Redis 저장 완료: {key_name} -> {nested_data}")
 
 def save_stocks_to_redis(redis_client, stocks_data):
     """주식 데이터를 Redis에 저장하는 함수."""
     for stock in stocks_data:
         key = f"stock:{stock['ticker']}"  # Redis 키 생성
         redis_client.hmset(key, stock)  # 데이터를 해시 형식으로 저장
-        print(f"Redis 저장 완료: {key} -> {stock}")
+        # print(f"Redis 저장 완료: {key} -> {stock}")

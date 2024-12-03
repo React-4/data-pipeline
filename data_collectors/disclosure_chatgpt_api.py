@@ -91,16 +91,16 @@ def process_disclosures(disclosure_df, stock_info_df, output_path="result_table.
         stock_id = row['stock_id']
         content = row['content']
         if not isinstance(content, str) or not content.strip():
-            print(f"행 {idx}: 내용이 비어있음. 건너뜀.")
+            # print(f"행 {idx}: 내용이 비어있음. 건너뜀.")
             continue
 
-        print(f"Stock ID {stock_id}, 행 {idx} 처리 중...")
+        # print(f"Stock ID {stock_id}, 행 {idx} 처리 중...")
 
         # 텍스트 분할
         chunks = divide_text_by_tokens(content, max_tokens=60000)
         summaries = []
         for i, chunk in enumerate(chunks, 1):
-            print(f"{i}/{len(chunks)} 요약 진행 중...")
+            # print(f"{i}/{len(chunks)} 요약 진행 중...")
             summaries.append(summarize_chunk(chunk))
 
         # 요약 분석
@@ -125,7 +125,7 @@ def process_disclosures(disclosure_df, stock_info_df, output_path="result_table.
 
     # CSV로 저장
     result_df.to_csv(output_path, index=False, encoding="utf-8-sig")
-    print(f"결과 테이블 저장 완료: {output_path}")
+    # print(f"결과 테이블 저장 완료: {output_path}")
 
 
 def process_disclosures2(disclosure_df, stock_info_df):
@@ -144,23 +144,23 @@ def process_disclosures2(disclosure_df, stock_info_df):
 
         if stock_code == '005930':
             if not isinstance(content, str) or not content.strip():
-                print(f"행 {idx}: 내용이 비어있음. 건너뜀.")
+                # print(f"행 {idx}: 내용이 비어있음. 건너뜀.")
                 continue
 
-            print(f"Stock ID {stock_id}, 행 {idx} 처리 중...")
+            # print(f"Stock ID {stock_id}, 행 {idx} 처리 중...")
 
             # 텍스트 분할
             chunks = divide_text_by_tokens(content, max_tokens=60000)
             summaries = []
             for i, chunk in enumerate(chunks, 1):
-                print(f"{i}/{len(chunks)} 요약 진행 중...")
+                # print(f"{i}/{len(chunks)} 요약 진행 중...")
                 summaries.append(summarize_chunk(chunk))
 
             # 요약 분석
             print("\n모든 요약 완료. 분석 시작...")
             analysis_result = analyze_combined_summary(summaries)
         else:
-            print(f"Stock Code {stock_code}, 행 {idx}: ChatGPT 생략, 'test' 추가")
+            # print(f"Stock Code {stock_code}, 행 {idx}: ChatGPT 생략, 'test' 추가")
             analysis_result = "test"
 
         # 결과 저장
