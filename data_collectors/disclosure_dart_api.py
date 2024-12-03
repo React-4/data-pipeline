@@ -84,7 +84,7 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
     all_filings = []
 
     # 필요한 페이지 수만큼 반복
-    for page_no in tqdm(range(1, total_pages + 1)):
+    for page_no in range(1, total_pages + 1):
         filings = dart_fss.api.filings.search_filings(
             bgn_de=bgn_de,
             end_de=end_de,
@@ -126,7 +126,7 @@ def fetch_dart_filings(bgn_de, end_de, corp_cls='Y', page_count=25, output_dir='
     os.makedirs(disclosure_dir, exist_ok=True)  # 디렉토리가 없으면 생성
 
     num = 0
-    for index, row in tqdm(df.iterrows(), total=len(df), desc="Processing rows"):
+    for index, row in df.iterrows():
         num +=1
 
         if num %100 == 0:

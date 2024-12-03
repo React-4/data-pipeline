@@ -97,8 +97,7 @@ def stock_info_crawler():
 
         # 추가 기업 정보 가져오기
         additional_info = []
-        for index, row in tqdm(listed_companies_df.iterrows(), total=len(listed_companies_df),
-                               desc="Processing companies"):
+        for index, row in listed_companies_df.iterrows():
             ticker = row["종목코드"]
             company_info = get_daum_company_info(ticker)
             additional_info.append(company_info)

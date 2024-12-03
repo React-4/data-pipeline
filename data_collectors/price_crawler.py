@@ -67,7 +67,7 @@ def stock_price_crawler(df, interval, n=1000):
     unified_data = []
 
     # 각 종목에 대해 크롤링 수행
-    for _, row in tqdm(df.iterrows(), total=len(df), desc=f"Processing stocks ({interval})"):
+    for _, row in df.iterrows():
         stock_id = row["stock_id"]
         ticker = row["ticker"]
         time.sleep(1)
