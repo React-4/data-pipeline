@@ -10,6 +10,9 @@ from zipfile import BadZipFile
 import math
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore")
+
 def categorize_announcement_type(report_nm):
     """
     공시 제목(report_nm)을 기반으로 공시 타입을 분류합니다.

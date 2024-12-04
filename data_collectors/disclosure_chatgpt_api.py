@@ -135,33 +135,34 @@ def process_disclosures2(disclosure_df, stock_info_df):
     # stock_code와 ticker를 매핑하여 stock_id 추가
     ticker_to_id = stock_info_df.set_index('ticker')['stock_id'].to_dict()
     disclosure_df['stock_id'] = disclosure_df['stock_code'].map(ticker_to_id)
-
     results = []
+    print("공시 chatgpt 분석 시작",len(disclosure_df))
+
     for idx, row in disclosure_df.iterrows():
         stock_code = row['stock_code']
         stock_id = row['stock_id']
         content = row['content']
 
-        if stock_code == '005930':
-            if not isinstance(content, str) or not content.strip():
-                # print(f"행 {idx}: 내용이 비어있음. 건너뜀.")
-                continue
+        # if stock_code == '005930':
+        if not isinstance(content, str) or not content.strip():
+            # print(f"행 {idx}: 내용이 비어있음. 건너뜀.")
+            continue
 
-            # print(f"Stock ID {stock_id}, 행 {idx} 처리 중...")
+        # print(f"Stock ID {stock_id}, 행 {idx} 처리 중...")
 
-            # 텍스트 분할
-            chunks = divide_text_by_tokens(content, max_tokens=60000)
-            summaries = []
-            for i, chunk in enumerate(chunks, 1):
-                # print(f"{i}/{len(chunks)} 요약 진행 중...")
-                summaries.append(summarize_chunk(chunk))
+        # 텍스트 분할
+        chunks = divide_text_by_tokens(content, max_tokens=60000)
+        summaries = []
+        for i, chunk in enumerate(chunks, 1):
+            # print(f"{i}/{len(chunks)} 요약 진행 중...")
+            summaries.append(summarize_chunk(chunk))
 
-            # 요약 분석
-            print("\n모든 요약 완료. 분석 시작...")
-            analysis_result = analyze_combined_summary(summaries)
-        else:
-            # print(f"Stock Code {stock_code}, 행 {idx}: ChatGPT 생략, 'test' 추가")
-            analysis_result = "test"
+        # 요약 분석
+        print("\n모든 요약 완료. 분석 시작...")
+        analysis_result = analyze_combined_summary(summaries)
+        # else:
+        #     # print(f"Stock Code {stock_code}, 행 {idx}: ChatGPT 생략, 'test' 추가")
+        #     analysis_result = "test"
 
         # 결과 저장
         result = {

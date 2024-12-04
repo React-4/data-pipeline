@@ -43,6 +43,8 @@ def get_redis_connection():
 
 # 월~금 하루에 한번 오후 6시 실행
 def update_day():
+    current_time = datetime.now()
+    print("start_day",current_time)
     mc = get_mysql_connection()
     stockInfo_df = mc.read_table_to_dataframe("stock")
     days_price_df = stock_price_crawler(stockInfo_df, "days", 1)
@@ -51,6 +53,8 @@ def update_day():
 
 # 매주 금요일 6시에 한번 실행
 def update_weeks():
+    current_time = datetime.now()
+    print("start_week",current_time)
     mc = get_mysql_connection()
     stockInfo_df = mc.read_table_to_dataframe("stock")
     weeks_price_df = stock_price_crawler(stockInfo_df, "weeks", 1)
@@ -59,6 +63,8 @@ def update_weeks():
 
 # 매달 1일 한번 실행
 def update_months():
+    current_time = datetime.now()
+    print("start_month",current_time)
     if datetime.now().day != 1:
         return
 
@@ -79,6 +85,11 @@ def reset_previous_row_count():
 
 
 def update_10m():
+    current_time = datetime.now()
+    if current_time.weekday() < 5 and 9 <= current_time.hour < 18:
+        print("10분 간격 작업 실행 중...")
+        print(current_time)
+
     global previous_row_count
     mc = get_mysql_connection()
     stockInfo_df = mc.read_table_to_dataframe("stock")
@@ -98,6 +109,14 @@ def update_10m():
 
 # 매 1분마다 실행
 def update_1m():
+    current_time = datetime.now()
+    if current_time.weekday() < 5 and 9 <= current_time.hour < 18:
+        print("1분 간격 작업 실행 중...")
+        print(current_time)
+    else:
+        return
+
+
     redis_client = get_redis_connection()
     print("실시간 순위 데이터 수집 및 Redis 저장 시작...")
     ht = hantwo_api_topN
@@ -148,7 +167,6 @@ def main():
     while True:
         schedule.run_pending()
         time.sleep(1)
-
 
 if __name__ == '__main__':
     main()
